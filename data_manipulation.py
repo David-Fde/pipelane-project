@@ -1,34 +1,11 @@
-# this code takes a list of movies as inpout and returns a pandas dataframe with columns:
-# title, vote_average, release_date, original_title, original_language, overview.
-# In addition some commands provide data manipulation of the dataframe.
-
-import os
-from dotenv import load_dotenv
-load_dotenv()
-import tmdbsimple as tmdb # is a wrapper, written in Python, for The Movie Database (TMDb).
-tmdb.API_KEY = os.getenv("TOKEN")
+# With this code data can be manipulated without the need of downloading all of them again.
 import pandas as pd
-import numpy as np
 import argparse
 
-def create_movies_df(movies):
-    movies_df=pd.DataFrame()
-    for movie in movies:
-        search = tmdb.Search() # Search movie data using The Movie Database API.
-        movie = search.movie(query=movie)
-        df=pd.DataFrame(search.results[0])
-        df = df.drop(['popularity','vote_count','video','poster_path','id','adult',
-        'backdrop_path','genre_ids','original_title','original_language'],axis=1)
-        df = df.reindex(columns=['title','vote_average','release_date','overview'])
-        df=df.drop_duplicates()
-        movies_df=pd.concat([movies_df,df])
-        movies=movies_df.reset_index(drop=True)
-        movies_df.index = np.arange(1, len(movies_df) + 1)
-        movies_df.to_csv("./output/movies_dataset.csv")
-    return movies_df
+data = pd.read_csv('./output/movies_dataset.csv')
 
 def overview(df):
-    print("\n")
+    print(data)
     title=input('Tell me a movie (exact title) and I tell you its overview: ')
     while title not in list(df['title']):
         title=input('Tell me a movie (exact title) and I tell you its overview: ')
@@ -41,7 +18,7 @@ def overview(df):
             counter+=1
 
 def chronological_order(df):
-    print("\n")
+    print(data)
     order=input('Chronological order ~ Ascending (A), Descending (D): ')
     while order != 'A' and order != 'D':
         order=input('Chronological order ~ Ascending (A), Descending (D): ')
@@ -52,7 +29,7 @@ def chronological_order(df):
         return print(df.sort_values(by='release_date',ascending=False))
 
 def vote_average_desc(df):
-    print("\n")
+    print(data)
     order=input('Vote average order ~ Ascending (A), Descending (D): ')
     while order != 'A' and order != 'D':
         order=input('Vote average order ~ Ascending (A), Descending (D): ')
@@ -61,21 +38,19 @@ def vote_average_desc(df):
         return print(df.sort_values(by='vote_average',ascending=True))
     elif order == 'D':
         return print(df.sort_values(by='vote_average',ascending=False))
-        
+
 def max_min_vote_average(df):
-    print("\n")
+    print(data)
     value=input('Write M (Max) or m (Min) to get the value: ')
     while value != 'M' and value != 'm':
         ('Write M (Max) or m (Min) to get the value: ')
     if value == 'M':
         return print(df['vote_average'].max())
     elif value == 'm':
-        return print(df['vote_average'].min()) 
+        return print(df['vote_average'].min())
 
 def parse():
     parser = argparse.ArgumentParser()                 
-    parser.add_argument('--movies',help='Insert a list of movies. Ex: "Hulk" "Thor". Write the exact name.', 
-    nargs='+',type=str)
     parser.add_argument('-o', help='Insert a valid and exact name of a movie in the list and returns its complete overview.', 
     action='store_true')
     parser.add_argument('-c', help='Returns the list in chronological order.', 
@@ -88,16 +63,14 @@ def parse():
 
 def main(): 
     args=parse()
-    movies_df=create_movies_df(args.movies)
-    print(movies_df)
     if args.o == True:
-       overview(movies_df)
+       overview(data)
     elif args.c == True:
-        chronological_order(movies_df)
+        chronological_order(data)
     elif args.a == True:
-        vote_average_desc(movies_df)            
+        vote_average_desc(data)            
     elif args.m == True:
-        max_min_vote_average(movies_df)
+        max_min_vote_average(data)
 
 if __name__=='__main__':
     main()
